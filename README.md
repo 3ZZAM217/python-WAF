@@ -13,8 +13,8 @@ Client Request
       │
       ▼
 ┌─────────────────────────────────────────────────┐
-│              Python Shield WAF  :8000            │
-│                                                 │
+│              Python Shield WAF  :8000            
+│                                                 
 │  1. IP Blocklist Filter   ─── config/malicious_ips.txt
 │  2. Rate Limiter          ─── sliding window, per-IP async lock
 │  3. Anomaly Detector      ─── AI-based zero-day detection
@@ -23,9 +23,9 @@ Client Request
 │  6. Request Body Inspector─── configurable size limit
 │  7. Header Inspector      ─── User-Agent, Referer, X-Forwarded-For
 │  8. Self-Learning Pipe    ─── automated retraining loop
-│                                                 │
-│  ✅ PASS → forward via shared AsyncClient        │
-│  ❌ BLOCK → 403 (RFC 7807 Problem Details) + log │
+│                                                 
+│  ✅ PASS → forward via shared AsyncClient        
+│  ❌ BLOCK → 403 (RFC 7807 Problem Details) + log 
 └─────────────────────────────────────────────────┘
       │
       ▼

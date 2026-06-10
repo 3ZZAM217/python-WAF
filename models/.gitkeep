@@ -1,0 +1,9 @@
+# Model artifacts are stored here.
+#
+# This directory is tracked in git (via this file) but model *.pkl files are
+# excluded via .gitignore.
+#
+# To generate the model artifact, run from the project root:
+#
+#   python scripts/generate_dataset.py   # creates data/training_data.csv
+#   python scripts/train_model.py        # trains and saves models/waf_ai_model.pkl

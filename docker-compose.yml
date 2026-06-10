@@ -1,0 +1,57 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Python Shield WAF — reverse proxy (port 8000 → demo_app:5000)
+  # ---------------------------------------------------------------------------
+  waf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    ports:
+      - "8000:8000"
+    environment:
+      # Override the target URL so the WAF reaches the demo_app container
+      - TARGET_URL=http://demo_app:5000
+      # Log file inside the mounted volume
+      - WAF_LOG_FILE=/app/logs/waf_alerts.log
+    volumes:
+      # Persist WAF alert logs on the host for analysis
+      - waf_logs:/app/logs
+    depends_on:
+      demo_app:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Vulnerable demo application (not exposed directly to the host)
+  # ---------------------------------------------------------------------------
+  demo_app:
+    build:
+      context: ./demo_app
+      dockerfile: Dockerfile
+    expose:
+      - "5000"
+    environment:
+      - FLASK_DEBUG=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 15s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+# ---------------------------------------------------------------------------
+# Named volumes
+# ---------------------------------------------------------------------------
+volumes:
+  waf_logs:
+    driver: local

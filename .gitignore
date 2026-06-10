@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs (generated at runtime — do not commit)
+logs/
+*.log
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# AI model artifacts (binary — regenerate with: python scripts/train_model.py)
+models/*.pkl
+models/*.joblib
+
+# Training data (may be large — regenerate with: python scripts/generate_dataset.py)
+# Comment out if you want to commit the dataset for reproducibility
+# data/training_data.csv

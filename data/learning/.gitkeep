@@ -1,0 +1,11 @@
+# Self-learning data directory.
+#
+# The WAF's learning pipeline stores collected samples here:
+#   - collected_attacks.csv  — requests blocked by rules/AI (confirmed attacks)
+#   - collected_benign.csv   — sampled allowed requests (baseline normal traffic)
+#   - merged_training_data.csv — combined dataset used for retraining
+#
+# Archived files (after retraining) are preserved with timestamp suffixes
+# for forensic analysis.
+#
+# This data is auto-generated at runtime. Do not commit data files to git.

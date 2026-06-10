@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-shield-waf"
+version = "1.0.0"
+description = "A high-performance, async-first Web Application Firewall with a self-learning AI detection layer."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "[Your Name]", email = "you@example.com" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Topic :: Security",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "httpx>=0.25.0",
+    "pyyaml>=6.0",
+    "scikit-learn>=1.3.0",
+    "joblib>=1.3.0",
+    "numpy>=1.25.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/[YOUR_GITHUB_USERNAME]/python-shield-waf"
+Repository = "https://github.com/[YOUR_GITHUB_USERNAME]/python-shield-waf.git"
+"Bug Tracker" = "https://github.com/[YOUR_GITHUB_USERNAME]/python-shield-waf/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["waf*"]
+
+# ---------------------------------------------------------------------------
+# pytest configuration
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = "."
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+# Treat unknown marks as errors to catch typos
+addopts = "--strict-markers"
+markers = [
+    "slow: tests that take more than 1 second to run",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff linter configuration
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["waf", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "S",   # flake8-bandit (security)
+    "B",   # flake8-bugbear
+    "A",   # flake8-builtins
+    "C4",  # flake8-comprehensions
+    "PT",  # flake8-pytest-style
+]
+ignore = [
+    "S101",  # assert — used legitimately in tests
+    "S603",  # subprocess — not used, but suppressed for flexibility
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S106"]  # Assertions and hardcoded passwords are fine in tests
+
+# ---------------------------------------------------------------------------
+# Coverage configuration
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["waf"]
+omit = ["waf/__init__.py", "waf/*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

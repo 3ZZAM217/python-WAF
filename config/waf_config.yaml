@@ -1,0 +1,140 @@
+# Python Shield WAF — Runtime Configuration
+# ==========================================
+# All values here can be overridden by environment variables where noted.
+# Restart the WAF process after editing this file.
+
+# ---------------------------------------------------------------------------
+# Upstream target
+# ---------------------------------------------------------------------------
+target:
+  # URL of the backend application being protected.
+  # Override with env var: TARGET_URL
+  url: "http://localhost:5000"
+
+  # Seconds to wait for the backend to respond before returning 502.
+  timeout_seconds: 10
+
+# ---------------------------------------------------------------------------
+# Rate limiting
+# ---------------------------------------------------------------------------
+rate_limit:
+  # Maximum number of requests allowed from a single IP within the window.
+  max_requests: 30
+
+  # Sliding window duration in seconds.
+  window_seconds: 60
+
+  # Maximum number of unique IPs tracked in memory before LRU eviction.
+  # Prevents unbounded memory growth under sustained attack traffic.
+  max_tracked_ips: 100000
+
+# ---------------------------------------------------------------------------
+# IP filtering
+# ---------------------------------------------------------------------------
+ip_filter:
+  # Path to the file containing blocked IPs/CIDRs (one per line).
+  # Supports both individual IPs (192.168.1.1) and CIDR ranges (10.0.0.0/8).
+  # Lines starting with '#' are treated as comments.
+  blocklist_path: "config/malicious_ips.txt"
+
+  # Check file modification time and reload blocklist automatically.
+  hot_reload: true
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logging:
+  # Absolute or relative path for the rotating alert log.
+  # Override with env var: WAF_LOG_FILE
+  log_file: "logs/waf_alerts.log"
+
+  # Logging verbosity: DEBUG | INFO | WARNING | ERROR
+  level: "INFO"
+
+# ---------------------------------------------------------------------------
+# Security rules
+# ---------------------------------------------------------------------------
+rules:
+  # Enable or disable individual rule categories.
+  sqli_detection: true
+  xss_detection: true
+
+  # Scan these request surfaces (any combination).
+  inspect_url_path: true
+  inspect_query_string: true
+  inspect_request_body: true
+  inspect_headers: true
+
+  # Maximum body size (bytes) to inspect. Larger bodies are passed through
+  # to avoid memory exhaustion on file uploads. Set 0 to disable limit.
+  max_body_inspect_bytes: 65536  # 64 KB
+
+# ---------------------------------------------------------------------------
+# AI threat detection (Rule 7)
+# ---------------------------------------------------------------------------
+ai:
+  # Set to false to completely disable the AI layer (Rules 1-6 still run).
+  enabled: true
+
+  # Operating mode:
+  #   "shadow" — AI runs and logs its verdict but NEVER blocks requests.
+  #              Safe for initial deployment. Watch waf_alerts.log for
+  #              AI_SHADOW entries to tune the model before enabling block mode.
+  #   "block"  — AI blocks requests it classifies as malicious (confidence
+  #              >= confidence_threshold). Enable only after reviewing shadow logs.
+  mode: "block"
+
+  # Minimum model confidence score (0.0–1.0) to treat a request as an attack.
+  # Lower = more aggressive (more false positives).
+  # Higher = more conservative (fewer false positives, may miss some attacks).
+  confidence_threshold: 0.70
+
+  # Path to the pre-trained model artifact (produced by: python scripts/train_model.py).
+  model_path: "models/waf_ai_model.pkl"
+
+  # Maximum bytes of the combined request surface string fed to the AI model.
+  # Larger payloads are truncated to avoid memory/latency spikes.
+  max_surface_bytes: 4096
+
+  # ---------------------------------------------------------------------------
+  # Anomaly detection (Isolation Forest — catches zero-day attacks)
+  # ---------------------------------------------------------------------------
+  # The anomaly detector learns what "normal" traffic looks like and flags
+  # anything statistically unusual — even attack types that have never been
+  # seen before in training data.
+  anomaly_detection: true
+
+  # Expected fraction of outliers in traffic (0.001–0.50).
+  # Lower = fewer false positives but may miss subtle attacks.
+  # Higher = catches more but may flag legitimate edge-case requests.
+  anomaly_contamination: 0.05
+
+  # Path to the anomaly model artifact.
+  anomaly_model_path: "models/waf_anomaly_model.pkl"
+
+  # ---------------------------------------------------------------------------
+  # Self-learning pipeline
+  # ---------------------------------------------------------------------------
+  # When enabled, the WAF automatically:
+  #   1. Collects blocked requests as confirmed-attack training data
+  #   2. Samples a fraction of allowed requests as baseline "normal" data
+  #   3. Periodically retrains the AI models on accumulated data
+  #   4. Hot-swaps the new model into the live pipeline (zero downtime)
+  learning:
+    enabled: true
+
+    # Directory where collected learning samples are stored.
+    data_dir: "data/learning"
+
+    # Auto-retrain triggers (whichever fires first):
+    retrain_after_samples: 100    # Retrain after N new samples collected
+    retrain_interval_hours: 6     # Retrain at most every N hours
+
+    # Safety gate: new model must beat this F1 score to replace the old one.
+    # Prevents deploying a worse model due to noisy or poisoned data.
+    min_f1_for_deploy: 0.88
+
+    # Fraction of allowed (benign) requests to sample for baseline data.
+    # Higher = better anomaly detection baseline but more disk usage.
+    baseline_sample_rate: 0.10
+
